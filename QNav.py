@@ -13,7 +13,7 @@ class qnavCommand(sublime_plugin.WindowCommand):
 			for x in range(1,10):
 				data += file.readline()
 		data += "\n---------------------------------------------\n"
-		return data
+		return data.replace("\r","")
 
 	def show(self, path, file):
 		data = "Path: " + path.replace("\\", "/") + "\n"

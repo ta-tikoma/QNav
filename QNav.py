@@ -15,18 +15,26 @@ class qnavCommand(sublime_plugin.WindowCommand):
 		data += "\n---------------------------------------------\n"
 		return data.replace("\r","")
 
+
+
 	def show(self, path, file):
+
 		data = "Path: " + path.replace("\\", "/") + "\n"
-		for folder in os.listdir(path):
-			if os.path.isfile(path + "/" + folder):
-				if len(file) != 0:
-					if file == folder:
-						data += " ► " + folder + "\n"
-						data += self.get_strings_form_file(path + "/" + folder)
-						continue
-				data += "   " + folder + "\n"
-			else:
-				data += " + " + folder + "\n"
+		if path == "":
+			folders = self.window.folders()
+			for folder in folders:
+				data += " + " + os.path.basename(folder) + "\n"
+		else:		
+			for folder in os.listdir(path):
+				if os.path.isfile(path + "/" + folder):
+					if len(file) != 0:
+						if file == folder:
+							data += " ► " + folder + "\n"
+							data += self.get_strings_form_file(path + "/" + folder)
+							continue
+					data += "   " + folder + "\n"
+				else:
+					data += " + " + folder + "\n"
 
 		self.current_view.run_command("select_all")
 		self.current_view.run_command("right_delete")
@@ -38,68 +46,94 @@ class qnavCommand(sublime_plugin.WindowCommand):
 
 	def find_path(self, path_letters):
 		folders = self.window.folders()
-		path = folders[0]
+		path = ""
+		# path = folders[0]
 		file_selected = ""
 
 		if len(folders) == 1:
-			i = 0
-			undefined_flag = False
-			while i < len(path_letters):
-				if (path_letters[i] == ":"):
-					break
+			path = folders[0]
 
+		i = 0
+		undefined_flag = False
+		selected_item = ""
+
+		while i < len(path_letters):
+			if (path_letters[i] == ":"):
+				break
+
+			if path == "":
+				if selected_item == "":
+					items = []
+					for folder in folders:
+						items.append(os.path.basename(folder))
+				else:
+					for folder in folders:
+						if selected_item == os.path.basename(folder):
+							path = folder
+							break
+			if path != "":
 				items = os.listdir(path)
 
-				max_concurrences_index = 0
-				selected_item = ""
+			max_concurrences_index = 0
 
-				j = 0
-				while j < len(items):
-					concurrences_index = 0
-					k = i
-					while (k < len(path_letters)) & (concurrences_index < len(items[j])):
-						if path_letters[k] == '\\':
-							break
-						if items[j][concurrences_index].lower() == path_letters[k]:
-							k += 1
-							concurrences_index += 1
-						else:
-							break
+			j = 0
+			while j < len(items):
+				concurrences_index = 0
+				k = i
+				while (k < len(path_letters)) & (concurrences_index < len(items[j])):
+					if path_letters[k] == '\\':
+						break
+					if items[j][concurrences_index].lower() == path_letters[k]:
+						k += 1
+						concurrences_index += 1
+					else:
+						break
 
-					if k < len(path_letters):
-						if path_letters[k] == '\\':
-							undefined_flag = False
-							selected_item = items[j]
-							max_concurrences_index = concurrences_index + 1
-							break
-
-					if concurrences_index >= max_concurrences_index:
-						if concurrences_index == max_concurrences_index:
-							undefined_flag = True
-						else:
-							undefined_flag = False
-
+				if k < len(path_letters):
+					if path_letters[k] == '\\':
+						undefined_flag = False
 						selected_item = items[j]
-						max_concurrences_index = concurrences_index
+						max_concurrences_index = concurrences_index + 1
+						break
 
-					j += 1
+				if concurrences_index >= max_concurrences_index:
+					if concurrences_index == max_concurrences_index:
+						undefined_flag = True
+					else:
+						undefined_flag = False
 
-			
-				i += max_concurrences_index
+					selected_item = items[j]
+					max_concurrences_index = concurrences_index
 
-				if undefined_flag:
-					break
+				j += 1
 
+		
+			i += max_concurrences_index
+
+			if undefined_flag:
+				break
+
+			if path != "":
 				if os.path.isfile(path + "/" + selected_item):
 					file_selected = selected_item
 					break
 				else:
 					path += "/" + selected_item
+				
+
+		if path == "":
+			if selected_item != "":
+				for folder in folders:
+					if selected_item == os.path.basename(folder):
+						path = folder
+						break
 
 		# print("-------------")
 		# print(path)
+		# print(selected_item)
 		# print(file_selected)
 		# print(path_letters[i:])
+		# print("-------------")
 
 		return [path, file_selected, path_letters[i:]]
 

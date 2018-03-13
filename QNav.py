@@ -6,6 +6,7 @@ import sublime_plugin
 class qnavCommand(sublime_plugin.WindowCommand):
 	current_view = 0
 	view_name = "File navigation"
+	slash = "\\"
 
 	def get_strings_form_file(self, path):
 		data = "---------------------------------------------\n"
@@ -15,22 +16,19 @@ class qnavCommand(sublime_plugin.WindowCommand):
 		data += "\n---------------------------------------------\n"
 		return data.replace("\r","")
 
-
-
 	def show(self, path, file):
-
-		data = "Path: " + path.replace("\\", "/") + "\n"
+		data = "Path: " + path + "\n"
 		if path == "":
 			folders = self.window.folders()
 			for folder in folders:
 				data += " + " + os.path.basename(folder) + "\n"
 		else:		
 			for folder in os.listdir(path):
-				if os.path.isfile(path + "/" + folder):
+				if os.path.isfile(path + self.slash + folder):
 					if len(file) != 0:
 						if file == folder:
 							data += " ► " + folder + "\n"
-							data += self.get_strings_form_file(path + "/" + folder)
+							data += self.get_strings_form_file(path + self.slash + folder)
 							continue
 					data += "   " + folder + "\n"
 				else:
@@ -47,11 +45,13 @@ class qnavCommand(sublime_plugin.WindowCommand):
 	def find_path(self, path_letters):
 		folders = self.window.folders()
 		path = ""
-		# path = folders[0]
 		file_selected = ""
 
 		if len(folders) == 1:
 			path = folders[0]
+
+		if self.slash not in folder[0]:
+			self.slash = "/";	
 
 		i = 0
 		undefined_flag = False
@@ -114,11 +114,11 @@ class qnavCommand(sublime_plugin.WindowCommand):
 				break
 
 			if path != "":
-				if os.path.isfile(path + "/" + selected_item):
+				if os.path.isfile(path + self.slash + selected_item):
 					file_selected = selected_item
 					break
 				else:
-					path += "/" + selected_item
+					path += self.slash + selected_item
 				
 
 		if path == "":
@@ -153,8 +153,6 @@ class qnavCommand(sublime_plugin.WindowCommand):
 		self.show(path_and_file[0], "")
 		self.window.show_input_panel("Enter path", qnav_path.split(':')[0], self.on_done, self.on_change, self.on_cancel)
 		
-
-
 	def close_view(self):
 		if (self.current_view != 0):
 			self.current_view.set_scratch(True)
@@ -171,21 +169,20 @@ class qnavCommand(sublime_plugin.WindowCommand):
 		if len(path_and_file[2]) != 0:
 			if path_and_file[2][:2] == ":a":
 				if path_and_file[2][2:].find(".") == -1:
-					os.makedirs(path_and_file[0] + "/" + path_and_file[2][2:])
+					os.makedirs(path_and_file[0] + self.slash + path_and_file[2][2:])
 					self.current_view = self.window.new_file()
 					self.current_view.set_name(self.view_name)
 					self.show(path_and_file[0], "")
 					self.window.show_input_panel("Enter path", text.split(':')[0], self.on_done, self.on_change, self.on_cancel)
 				else:
-					self.window.open_file(path_and_file[0] + "/" + path_and_file[2][2:])
+					self.window.open_file(path_and_file[0] + self.slash + path_and_file[2][2:])
 			elif path_and_file[2][:2] == ":r":
 				if len(path_and_file[1]) != 0:
-					os.remove(path_and_file[0] + "/" + path_and_file[1])
+					os.remove(path_and_file[0] + self.slash + path_and_file[1])
 				else:
 					os.rmdir(path_and_file[0])
 		elif len(path_and_file[1]) != 0:
-				self.window.open_file(path_and_file[0] + "/" + path_and_file[1])
-
+				self.window.open_file(path_and_file[0] + self.slash + path_and_file[1])
 
 	def on_change(self, text):
 		path_and_file = self.find_path(text)

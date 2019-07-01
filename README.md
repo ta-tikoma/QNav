@@ -23,4 +23,6 @@ For **add** file or folder you can write `:afolder_name` after your path.
 
 For **remove** file or foldre you can write `:r` after you path.
 
+For **find in files** file or foldre you can write `:f` after you path.
+
 ![example](https://github.com/ta-tikoma/QNav/blob/master/example.gif?raw=true)

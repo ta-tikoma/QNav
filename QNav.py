@@ -258,6 +258,20 @@ class qnavCommand(sublime_plugin.WindowCommand):
                 # удалить директорию
                 else:
                     os.rmdir(path_and_file[0])
+
+            # если действие: найти
+            elif path_and_file[2][:2] == ":f":
+                # удалить файл
+                if len(path_and_file[1]) != 0:
+                    path_to_find = os.path.join(path_and_file[0], path_and_file[1])
+                # удалить директорию
+                else:
+                    path_to_find = path_and_file[0]
+
+                self.window.run_command("show_panel", {
+                    "panel": "find_in_files",
+                    "where": path_to_find
+                })
         # если выбран файл открываем его
         elif len(path_and_file[1]) != 0:
                 self.window.open_file(os.path.join(path_and_file[0], path_and_file[1]))
